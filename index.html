@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام الفرعون محمود رسمي التعليمي</title>
+    <link rel="icon" type="image/png" href="https://r2.erweima.ai/i/1736780962371985117.jpg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+        body { font-family: 'Cairo', sans-serif; background: #f4f7f6; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .active-tab { border-bottom: 4px solid #b45309; color: #b45309 !important; background: #fffbeb; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+    </style>
+</head>
+<body class="pb-10">
+
+    <header class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white p-6 shadow-2xl sticky top-0 z-50">
+        <div class="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <img src="https://r2.erweima.ai/i/1736780962371985117.jpg" class="w-16 h-16 rounded-full border-2 border-yellow-500 shadow-lg">
+                <div>
+                    <h1 class="text-2xl font-black text-yellow-500">الفرعون محمود رسمي</h1>
+                    <p class="text-xs text-gray-300">نظام الإدارة التعليمي المتكامل</p>
+                </div>
+            </div>
+            <button onclick="startScanner()" class="bg-yellow-600 hover:bg-yellow-500 text-white px-8 py-3 rounded-2xl font-black shadow-xl transition-all scale-105 active:scale-95">
+                📷 مسح حضور الطلاب
+            </button>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 mt-8 max-w-6xl">
+        
+        <div class="flex bg-white rounded-2xl shadow-md border overflow-hidden mb-8">
+            <button onclick="showTab('students')" id="btn-students" class="tab-btn active-tab flex-1 py-4 font-bold transition">👥 إدارة الطلاب</button>
+            <button onclick="showTab('attendance')" id="btn-attendance" class="tab-btn flex-1 py-4 font-bold border-x">📅 سجل الحضور</button>
+            <button onclick="showTab('grades')" id="btn-grades" class="tab-btn flex-1 py-4 font-bold">📊 رصد الدرجات</button>
+            <button onclick="showTab('reports')" id="btn-reports" class="tab-btn flex-1 py-4 font-bold border-r">⚠️ الغياب</button>
+        </div>
+
+        <section id="students" class="tab-content active">
+            <div class="bg-white p-8 rounded-[35px] shadow-sm border mb-8">
+                <h2 class="text-xl font-black mb-6 text-slate-800">➕ إضافة طالب جديد للمجموعة</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <input type="text" id="stdName" placeholder="اسم الطالب الثنائي" class="p-4 bg-gray-50 rounded-2xl outline-none border focus:border-yellow-500">
+                    <input type="tel" id="stdPhone" placeholder="رقم ولي الأمر" class="p-4 bg-gray-50 rounded-2xl outline-none border focus:border-yellow-500">
+                    <input type="text" id="stdCenter" placeholder="اسم السنتر (مثلاً: سنتر الأوائل)" class="p-4 bg-gray-50 rounded-2xl outline-none border focus:border-yellow-500">
+                    <select id="stdYear" class="p-4 bg-gray-50 rounded-2xl outline-none border">
+                        <option value="">اختر المرحلة</option>
+                        <option>ابتدائي</option><option>إعدادي</option><option>ثانوي</option>
+                    </select>
+                </div>
+                <button onclick="addStudent()" class="w-full mt-6 bg-slate-900 text-yellow-500 p-4 rounded-2xl font-black text-lg shadow-lg">حفظ بيانات الطالب</button>
+            </div>
+            <div id="studentsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+        </section>
+
+        <section id="grades" class="tab-content">
+            <div class="bg-white p-8 rounded-[35px] shadow-sm mb-6 border-t-4 border-green-500">
+                <h2 class="text-xl font-black mb-6 text-green-800">📊 إرسال نتائج الاختبارات</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <select id="gradeStudentSelect" class="p-4 bg-gray-50 rounded-2xl border font-bold"></select>
+                    <input type="text" id="examName" placeholder="اسم الاختبار" class="p-4 bg-gray-50 rounded-2xl border">
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <input type="number" id="gradeValue" placeholder="درجة الطالب" class="p-4 bg-gray-50 rounded-2xl border font-black text-center text-xl">
+                    <input type="number" id="maxGrade" placeholder="الدرجة النهائية" class="p-4 bg-gray-50 rounded-2xl border text-center font-bold">
+                    <button onclick="sendGrade()" class="bg-green-600 text-white rounded-2xl font-bold hover:bg-green-700 transition shadow-lg">إرسال النتيجة 🚀</button>
+                </div>
+            </div>
+            <div id="gradesLog" class="bg-white p-6 rounded-3xl shadow-sm border overflow-x-auto">
+                <table class="w-full text-right">
+                    <thead><tr class="text-gray-400 text-sm border-b"><th class="pb-3">الطالب</th><th>السنتر</th><th>الامتحان</th><th>الدرجة</th></tr></thead>
+                    <tbody id="gradesTableBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="attendance" class="tab-content">
+             <div class="bg-white p-6 rounded-3xl shadow-sm"><input type="date" id="attDate" onchange="renderAttendance()" class="p-3 bg-yellow-50 rounded-xl font-bold border-none mb-4"><div id="attList" class="space-y-3"></div></div>
+        </section>
+
+        <section id="reports" class="tab-content">
+            <div class="bg-white p-8 rounded-3xl border shadow-sm"><div class="flex justify-between items-center mb-6"><h2 class="font-black text-red-600">كشف المتأخرين</h2><input type="time" id="classStartTime" value="16:00" class="p-2 border rounded-xl font-bold"></div><div id="absenceList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
+        </section>
+
+    </main>
+
+    <div id="scanModal" class="modal"><div class="bg-white p-8 rounded-[40px] w-11/12 max-w-md text-center relative border-t-8 border-yellow-500"><button onclick="stopScanner()" class="absolute top-6 left-6 text-gray-400 text-3xl">&times;</button><h3 class="text-xl font-black mb-6">مسح كود الفرعون</h3><div id="reader" class="rounded-3xl overflow-hidden bg-gray-100 aspect-square"></div><div id="scanMsg" class="mt-6 font-bold text-lg min-h-[40px] rounded-xl py-2"></div></div></div>
+
+    <script>
+        let students = JSON.parse(localStorage.getItem('students_fr')) || [];
+        let attendance = JSON.parse(localStorage.getItem('attendance_fr')) || {};
+        let grades = JSON.parse(localStorage.getItem('grades_fr')) || [];
+        let html5QrCode = null;
+
+        function save() {
+            localStorage.setItem('students_fr', JSON.stringify(students));
+            localStorage.setItem('attendance_fr', JSON.stringify(attendance));
+            localStorage.setItem('grades_fr', JSON.stringify(grades));
+            updateSelects();
+        }
+
+        function showTab(id) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active-tab'));
+            document.getElementById(id).classList.add('active');
+            document.getElementById('btn-'+id).classList.add('active-tab');
+            if(id === 'attendance') renderAttendance();
+            if(id === 'reports') renderAbsence();
+            if(id === 'grades') renderGradesTable();
+        }
+
+        function addStudent() {
+            const name = document.getElementById('stdName').value.trim();
+            const phone = document.getElementById('stdPhone').value.trim();
+            const center = document.getElementById('stdCenter').value.trim();
+            const year = document.getElementById('stdYear').value;
+            if(!name || !phone || !center || !year) return alert("يا فرعون، أكمل بيانات الطالب!");
+
+            students.push({ id: Date.now(), name, phone, center, year });
+            save(); renderStudents();
+            document.getElementById('stdName').value = ''; document.getElementById('stdPhone').value = ''; document.getElementById('stdCenter').value = '';
+        }
+
+        function renderStudents() {
+            document.getElementById('studentsGrid').innerHTML = students.map(s => `
+                <div class="bg-white p-6 rounded-[35px] shadow-sm border flex flex-col items-center hover:shadow-lg transition">
+                    <div id="qr-${s.id}" class="mb-4"></div>
+                    <h3 class="font-black text-slate-800">${s.name}</h3>
+                    <p class="text-xs font-bold text-yellow-600">${s.center} - ${s.year}</p>
+                    <button onclick="delStd(${s.id})" class="mt-4 text-red-300 hover:text-red-500 text-[10px] font-bold">حذف الطالب 🗑️</button>
+                </div>
+            `).join('');
+            students.forEach(s => new QRCode(document.getElementById(`qr-${s.id}`), { text: JSON.stringify({id: s.id}), width: 100, height: 100 }));
+            updateSelects();
+        }
+
+        function updateSelects() {
+            const s = document.getElementById('gradeStudentSelect');
+            if(s) s.innerHTML = '<option value="">اختر الطالب</option>' + students.map(st => `<option value="${st.id}">${st.name} (${st.center})</option>`).join('');
+        }
+
+        function startScanner() {
+            document.getElementById('scanModal').classList.add('active');
+            html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (text) => {
+                const data = JSON.parse(text);
+                const std = students.find(s => s.id == data.id);
+                const date = document.getElementById('attDate').value;
+                const msgEl = document.getElementById('scanMsg');
+
+                if(std && date && !attendance[date]?.[std.id]) {
+                    const time = new Date().toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit', hour12:true});
+                    if(!attendance[date]) attendance[date] = {};
+                    attendance[date][std.id] = { time: time };
+                    save();
+                    msgEl.innerText = "✅ أهلاً بالفرعون " + std.name;
+                    msgEl.className = "mt-6 font-bold text-lg py-2 px-4 bg-green-100 text-green-700 rounded-xl";
+                    
+                    const msg = `وصل بالسلامة يا مستر.. 🎓\nالطالب: *${std.name}*\nحضر في سنتر: *${std.center}*\nالساعة: *${time}*.\nتحياتنا: *الفرعون محمود رسمي* ✨`;
+                    window.open(`https://wa.me/2${std.phone}?text=${encodeURIComponent(msg)}`, '_blank');
+                }
+            }).catch(()=>{});
+        }
+
+        function stopScanner() { if(html5QrCode) html5QrCode.stop().then(() => { document.getElementById('scanModal').classList.remove('active'); renderAttendance(); }); }
+
+        function sendGrade() {
+            const id = document.getElementById('gradeStudentSelect').value;
+            const exam = document.getElementById('examName').value.trim();
+            const score = document.getElementById('gradeValue').value;
+            const max = document.getElementById('maxGrade').value;
+            if(!id || !exam || !score || !max) return alert("أكمل بيانات الدرجة!");
+
+            const std = students.find(s => s.id == id);
+            const msg = `نتيجة الاختبار.. 📊\nالطالب: *${std.name}*\nالسنتر: *${std.center}*\nالامتحان: *${exam}*\nالدرجة: *${score} من ${max}*\nمع تحيات: *الفرعون محمود رسمي* 👑`;
+            
+            grades.push({ name: std.name, center: std.center, exam, score, max });
+            save(); renderGradesTable();
+            window.open(`https://wa.me/2${std.phone}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        function renderGradesTable() {
+            document.getElementById('gradesTableBody').innerHTML = grades.slice().reverse().map(g => `
+                <tr class="border-b text-sm">
+                    <td class="py-4 font-bold text-slate-700">${g.name}</td>
+                    <td class="text-xs text-gray-500">${g.center}</td>
+                    <td class="text-xs">${g.exam}</td>
+                    <td class="font-black text-green-600">${g.score}/${g.max}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderAttendance() {
+            const date = document.getElementById('attDate').value;
+            if(!attendance[date]) attendance[date] = {};
+            document.getElementById('attList').innerHTML = students.map(s => {
+                const log = attendance[date][s.id];
+                return `<div class="p-4 rounded-2xl border ${log ? 'bg-green-50 border-green-200' : 'bg-white'} flex justify-between items-center"><span class="font-bold">${s.name} (${s.center})</span><span class="text-xs font-black">${log ? '✅ ' + log.time : 'غائب'}</span></div>`;
+            }).join('');
+        }
+
+        function renderAbsence() {
+            const date = document.getElementById('attDate').value;
+            const absents = students.filter(s => !attendance[date]?.[s.id]);
+            document.getElementById('absenceList').innerHTML = absents.map(s => `
+                <div class="p-5 bg-red-50 rounded-3xl border border-red-100 flex justify-between items-center shadow-sm">
+                    <div><h4 class="font-black text-slate-800 text-sm">${s.name}</h4><p class="text-[10px] text-red-500">سنتر: ${s.center}</p></div>
+                    <button onclick="sendAbsenceWA('${s.phone}', '${s.name}', '${s.center}')" class="bg-red-600 text-white px-5 py-2 rounded-xl text-xs font-bold shadow-lg shadow-red-100">تبليغ غياب 📢</button>
+                </div>
+            `).join('');
+        }
+
+        function sendAbsenceWA(phone, name, center) {
+            const msg = `تنبيه غياب.. ⚠️\nالطالب: *${name}*\nلم يحضر اليوم في سنتر: *${center}*.\nيرجى الاطمئنان عليه.\nتحياتنا: *الفرعون محمود رسمي* 👑`;
+            window.open(`https://wa.me/2${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        function delStd(id) { if(confirm('حذف؟')) { students = students.filter(s => s.id !== id); save(); renderStudents(); } }
+        document.getElementById('attDate').value = new Date().toISOString().split('T')[0];
+        renderStudents();
+    </script>
+</body>
+</html>
