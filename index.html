@@ -1,232 +1,541 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام الفرعون محمود رسمي التعليمي</title>
-    <link rel="icon" type="image/png" href="https://r2.erweima.ai/i/1736780962371985117.jpg">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
-        body { font-family: 'Cairo', sans-serif; background: #f4f7f6; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.4s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .active-tab { border-bottom: 4px solid #b45309; color: #b45309 !important; background: #fffbeb; }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; }
-        .modal.active { display: flex; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduCenter SaaS | Educational Center Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <style>
+    body { background: linear-gradient(120deg, #f8fafc, #eef2ff); }
+    .hidden-panel { display: none; }
+    .tab-active { background: #1e3a8a; color: #fff; }
+  </style>
 </head>
-<body class="pb-10">
-
-    <header class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white p-6 shadow-2xl sticky top-0 z-50">
-        <div class="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-            <div class="flex items-center gap-4">
-                <img src="https://r2.erweima.ai/i/1736780962371985117.jpg" class="w-16 h-16 rounded-full border-2 border-yellow-500 shadow-lg">
-                <div>
-                    <h1 class="text-2xl font-black text-yellow-500">الفرعون محمود رسمي</h1>
-                    <p class="text-xs text-gray-300">نظام الإدارة التعليمي المتكامل</p>
-                </div>
-            </div>
-            <button onclick="startScanner()" class="bg-yellow-600 hover:bg-yellow-500 text-white px-8 py-3 rounded-2xl font-black shadow-xl transition-all scale-105 active:scale-95">
-                📷 مسح حضور الطلاب
-            </button>
+<body class="min-h-screen text-slate-800">
+  <div class="max-w-7xl mx-auto p-4 md:p-8">
+    <header class="bg-slate-900 text-white rounded-3xl p-6 shadow-2xl mb-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-2xl md:text-3xl font-black">EduCenter SaaS</h1>
+          <p class="text-slate-300">Scalable, secure educational center management with multi-tenant teacher dashboards.</p>
         </div>
+        <div id="authState" class="text-sm text-slate-300"></div>
+      </div>
     </header>
 
-    <main class="container mx-auto px-4 mt-8 max-w-6xl">
-        
-        <div class="flex bg-white rounded-2xl shadow-md border overflow-hidden mb-8">
-            <button onclick="showTab('students')" id="btn-students" class="tab-btn active-tab flex-1 py-4 font-bold transition">👥 إدارة الطلاب</button>
-            <button onclick="showTab('attendance')" id="btn-attendance" class="tab-btn flex-1 py-4 font-bold border-x">📅 سجل الحضور</button>
-            <button onclick="showTab('grades')" id="btn-grades" class="tab-btn flex-1 py-4 font-bold">📊 رصد الدرجات</button>
-            <button onclick="showTab('reports')" id="btn-reports" class="tab-btn flex-1 py-4 font-bold border-r">⚠️ الغياب</button>
+    <section id="authPanel" class="grid md:grid-cols-2 gap-6">
+      <div class="bg-white rounded-3xl p-6 shadow-lg border">
+        <h2 class="text-xl font-bold mb-4">Teacher Login</h2>
+        <div class="space-y-3">
+          <input id="loginEmail" type="email" placeholder="Email" class="w-full border rounded-xl p-3" />
+          <input id="loginPassword" type="password" placeholder="Password" class="w-full border rounded-xl p-3" />
+          <button onclick="loginTeacher()" class="w-full bg-blue-700 hover:bg-blue-800 text-white rounded-xl p-3 font-bold">Login to Dashboard</button>
         </div>
+        <p class="text-xs text-slate-500 mt-3">Each teacher gets isolated data and access.</p>
+      </div>
 
-        <section id="students" class="tab-content active">
-            <div class="bg-white p-8 rounded-[35px] shadow-sm border mb-8">
-                <h2 class="text-xl font-black mb-6 text-slate-800">➕ إضافة طالب جديد للمجموعة</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <input type="text" id="stdName" placeholder="اسم الطالب الثنائي" class="p-4 bg-gray-50 rounded-2xl outline-none border focus:border-yellow-500">
-                    <input type="tel" id="stdPhone" placeholder="رقم ولي الأمر" class="p-4 bg-gray-50 rounded-2xl outline-none border focus:border-yellow-500">
-                    <input type="text" id="stdCenter" placeholder="اسم السنتر (مثلاً: سنتر الأوائل)" class="p-4 bg-gray-50 rounded-2xl outline-none border focus:border-yellow-500">
-                    <select id="stdYear" class="p-4 bg-gray-50 rounded-2xl outline-none border">
-                        <option value="">اختر المرحلة</option>
-                        <option>ابتدائي</option><option>إعدادي</option><option>ثانوي</option>
-                    </select>
-                </div>
-                <button onclick="addStudent()" class="w-full mt-6 bg-slate-900 text-yellow-500 p-4 rounded-2xl font-black text-lg shadow-lg">حفظ بيانات الطالب</button>
-            </div>
-            <div id="studentsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
-        </section>
+      <div class="bg-white rounded-3xl p-6 shadow-lg border">
+        <h2 class="text-xl font-bold mb-4">Create Teacher Account</h2>
+        <div class="space-y-3">
+          <input id="regName" type="text" placeholder="Teacher Full Name" class="w-full border rounded-xl p-3" />
+          <input id="regCenter" type="text" placeholder="Center Name" class="w-full border rounded-xl p-3" />
+          <input id="regEmail" type="email" placeholder="Email" class="w-full border rounded-xl p-3" />
+          <input id="regPassword" type="password" placeholder="Password" class="w-full border rounded-xl p-3" />
+          <button onclick="registerTeacher()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl p-3 font-bold">Start 7-Day Free Trial</button>
+        </div>
+      </div>
 
-        <section id="grades" class="tab-content">
-            <div class="bg-white p-8 rounded-[35px] shadow-sm mb-6 border-t-4 border-green-500">
-                <h2 class="text-xl font-black mb-6 text-green-800">📊 إرسال نتائج الاختبارات</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <select id="gradeStudentSelect" class="p-4 bg-gray-50 rounded-2xl border font-bold"></select>
-                    <input type="text" id="examName" placeholder="اسم الاختبار" class="p-4 bg-gray-50 rounded-2xl border">
-                </div>
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <input type="number" id="gradeValue" placeholder="درجة الطالب" class="p-4 bg-gray-50 rounded-2xl border font-black text-center text-xl">
-                    <input type="number" id="maxGrade" placeholder="الدرجة النهائية" class="p-4 bg-gray-50 rounded-2xl border text-center font-bold">
-                    <button onclick="sendGrade()" class="bg-green-600 text-white rounded-2xl font-bold hover:bg-green-700 transition shadow-lg">إرسال النتيجة 🚀</button>
-                </div>
-            </div>
-            <div id="gradesLog" class="bg-white p-6 rounded-3xl shadow-sm border overflow-x-auto">
-                <table class="w-full text-right">
-                    <thead><tr class="text-gray-400 text-sm border-b"><th class="pb-3">الطالب</th><th>السنتر</th><th>الامتحان</th><th>الدرجة</th></tr></thead>
-                    <tbody id="gradesTableBody"></tbody>
-                </table>
-            </div>
-        </section>
+      <div class="md:col-span-2 bg-white rounded-3xl p-6 shadow-lg border">
+        <h3 class="font-bold text-lg mb-3">Admin Access</h3>
+        <div class="grid md:grid-cols-3 gap-3">
+          <input id="adminEmail" type="email" placeholder="Admin Email" class="border rounded-xl p-3" />
+          <input id="adminPassword" type="password" placeholder="Admin Password" class="border rounded-xl p-3" />
+          <button onclick="loginAdmin()" class="bg-violet-700 hover:bg-violet-800 text-white rounded-xl p-3 font-bold">Open Admin Panel</button>
+        </div>
+        <p class="text-xs text-slate-500 mt-2">Default admin credentials: <code>admin@educenter.app / Admin#123</code></p>
+      </div>
+    </section>
 
-        <section id="attendance" class="tab-content">
-             <div class="bg-white p-6 rounded-3xl shadow-sm"><input type="date" id="attDate" onchange="renderAttendance()" class="p-3 bg-yellow-50 rounded-xl font-bold border-none mb-4"><div id="attList" class="space-y-3"></div></div>
-        </section>
+    <section id="teacherApp" class="hidden-panel">
+      <div class="bg-white border rounded-3xl p-5 mb-5 shadow">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div>
+            <h2 id="teacherTitle" class="text-2xl font-black"></h2>
+            <p id="subscriptionBadge" class="font-semibold"></p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="logout()" class="px-4 py-2 rounded-xl bg-slate-900 text-white">Logout</button>
+          </div>
+        </div>
+      </div>
 
-        <section id="reports" class="tab-content">
-            <div class="bg-white p-8 rounded-3xl border shadow-sm"><div class="flex justify-between items-center mb-6"><h2 class="font-black text-red-600">كشف المتأخرين</h2><input type="time" id="classStartTime" value="16:00" class="p-2 border rounded-xl font-bold"></div><div id="absenceList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
-        </section>
+      <div class="grid md:grid-cols-5 gap-2 mb-4 text-sm font-bold">
+        <button class="tab-btn tab-active rounded-xl p-3" onclick="showTeacherTab('students', this)">Students</button>
+        <button class="tab-btn rounded-xl p-3 bg-white" onclick="showTeacherTab('attendance', this)">QR Attendance</button>
+        <button class="tab-btn rounded-xl p-3 bg-white" onclick="showTeacherTab('payments', this)">Payments Tracking</button>
+        <button class="tab-btn rounded-xl p-3 bg-white" onclick="showTeacherTab('reports', this)">Reports</button>
+        <button class="tab-btn rounded-xl p-3 bg-white" onclick="showTeacherTab('subscription', this)">Subscription</button>
+      </div>
 
-    </main>
+      <div id="tab-students" class="bg-white border rounded-3xl p-5 shadow mb-4">
+        <h3 class="text-lg font-bold mb-3">Student Management</h3>
+        <div class="grid md:grid-cols-4 gap-3">
+          <input id="studentName" class="border rounded-xl p-3" placeholder="Student name" />
+          <input id="studentPhone" class="border rounded-xl p-3" placeholder="Parent phone" />
+          <input id="studentGrade" class="border rounded-xl p-3" placeholder="Grade" />
+          <button onclick="addStudent()" class="bg-blue-700 text-white rounded-xl p-3">Add Student</button>
+        </div>
+        <div id="studentsList" class="grid md:grid-cols-3 gap-4 mt-4"></div>
+      </div>
 
-    <div id="scanModal" class="modal"><div class="bg-white p-8 rounded-[40px] w-11/12 max-w-md text-center relative border-t-8 border-yellow-500"><button onclick="stopScanner()" class="absolute top-6 left-6 text-gray-400 text-3xl">&times;</button><h3 class="text-xl font-black mb-6">مسح كود الفرعون</h3><div id="reader" class="rounded-3xl overflow-hidden bg-gray-100 aspect-square"></div><div id="scanMsg" class="mt-6 font-bold text-lg min-h-[40px] rounded-xl py-2"></div></div></div>
+      <div id="tab-attendance" class="hidden-panel bg-white border rounded-3xl p-5 shadow mb-4">
+        <h3 class="text-lg font-bold mb-3">QR Attendance</h3>
+        <div class="flex flex-wrap gap-3 mb-3">
+          <input id="attendanceDate" type="date" class="border rounded-xl p-3" />
+          <button onclick="openScanner()" class="bg-amber-600 text-white rounded-xl p-3">Start Scanner</button>
+          <button onclick="closeScanner()" class="bg-slate-600 text-white rounded-xl p-3">Stop Scanner</button>
+        </div>
+        <div id="reader" class="max-w-md"></div>
+        <div id="scanResult" class="mt-3 text-sm font-semibold"></div>
+        <div id="attendanceList" class="mt-4 space-y-2"></div>
+      </div>
 
-    <script>
-        let students = JSON.parse(localStorage.getItem('students_fr')) || [];
-        let attendance = JSON.parse(localStorage.getItem('attendance_fr')) || {};
-        let grades = JSON.parse(localStorage.getItem('grades_fr')) || [];
-        let html5QrCode = null;
+      <div id="tab-payments" class="hidden-panel bg-white border rounded-3xl p-5 shadow mb-4">
+        <h3 class="text-lg font-bold mb-3">Student Payments Tracking</h3>
+        <div class="grid md:grid-cols-5 gap-3">
+          <select id="paymentStudent" class="border rounded-xl p-3"></select>
+          <input id="paymentMonth" class="border rounded-xl p-3" placeholder="Month (e.g., 2026-02)" />
+          <input id="paymentAmount" type="number" class="border rounded-xl p-3" placeholder="Amount" />
+          <select id="paymentStatus" class="border rounded-xl p-3">
+            <option>Paid</option><option>Pending</option><option>Overdue</option>
+          </select>
+          <button onclick="addPayment()" class="bg-emerald-600 text-white rounded-xl p-3">Record Payment</button>
+        </div>
+        <div id="paymentsTable" class="mt-4"></div>
+      </div>
 
-        function save() {
-            localStorage.setItem('students_fr', JSON.stringify(students));
-            localStorage.setItem('attendance_fr', JSON.stringify(attendance));
-            localStorage.setItem('grades_fr', JSON.stringify(grades));
-            updateSelects();
+      <div id="tab-reports" class="hidden-panel bg-white border rounded-3xl p-5 shadow mb-4">
+        <h3 class="text-lg font-bold mb-3">Reports</h3>
+        <div id="reportStats" class="grid md:grid-cols-4 gap-3"></div>
+      </div>
+
+      <div id="tab-subscription" class="hidden-panel bg-white border rounded-3xl p-5 shadow mb-4">
+        <h3 class="text-lg font-bold mb-3">Subscription</h3>
+        <div id="subscriptionDetails" class="mb-3"></div>
+        <div class="grid md:grid-cols-3 gap-3">
+          <input id="monthsToAdd" type="number" min="1" value="1" class="border rounded-xl p-3" />
+          <input id="paymentRef" class="border rounded-xl p-3" placeholder="Payment reference" />
+          <button onclick="renewSubscription()" class="bg-indigo-700 text-white rounded-xl p-3">Pay Monthly Plan</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="adminApp" class="hidden-panel bg-white border rounded-3xl p-6 shadow-lg">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-2xl font-black text-violet-800">Platform Admin Panel</h2>
+        <button onclick="logout()" class="px-4 py-2 rounded-xl bg-slate-900 text-white">Logout</button>
+      </div>
+      <p class="text-sm text-slate-600 mb-4">Manage teachers, monitor subscription health, and lock/unlock accounts for compliance.</p>
+      <div id="adminStats" class="grid md:grid-cols-4 gap-3 mb-4"></div>
+      <div id="adminTeachers" class="space-y-2"></div>
+    </section>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'educenter_saas_v1';
+    const ADMIN = { email: 'admin@educenter.app', password: 'Admin#123' };
+    const MONTHLY_PRICE = 49;
+    let html5QrCode = null;
+
+    function nowISO() { return new Date().toISOString(); }
+    function plusDays(dateStr, days) { const d = new Date(dateStr); d.setDate(d.getDate() + days); return d.toISOString(); }
+    function plusMonths(dateStr, months) { const d = new Date(dateStr); d.setMonth(d.getMonth() + months); return d.toISOString(); }
+    function daysBetween(from, to) { return Math.ceil((new Date(to) - new Date(from)) / (1000 * 60 * 60 * 24)); }
+
+    function defaultData() {
+      return {
+        session: null,
+        teachers: []
+      };
+    }
+
+    function loadDB() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || JSON.stringify(defaultData()));
+    }
+
+    function saveDB(db) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+    }
+
+    function hashPassword(p) {
+      return btoa(unescape(encodeURIComponent(p))).split('').reverse().join('');
+    }
+
+    function getTeacherById(db, id) {
+      return db.teachers.find(t => t.id === id);
+    }
+
+    function evaluateSubscriptionStatus(teacher) {
+      const now = new Date();
+      const trialEnd = new Date(teacher.subscription.trialEndsAt);
+      const paidUntil = teacher.subscription.paidUntil ? new Date(teacher.subscription.paidUntil) : null;
+      const forcedLocked = !!teacher.subscription.forceLocked;
+
+      if (forcedLocked) {
+        teacher.subscription.status = 'locked';
+        return;
+      }
+
+      if (paidUntil && now <= paidUntil) {
+        teacher.subscription.status = 'active';
+        teacher.subscription.lockedAt = null;
+        return;
+      }
+
+      if (now <= trialEnd) {
+        teacher.subscription.status = 'trial';
+        teacher.subscription.lockedAt = null;
+        return;
+      }
+
+      teacher.subscription.status = 'expired';
+      teacher.subscription.lockedAt = nowISO();
+    }
+
+    function registerTeacher() {
+      const db = loadDB();
+      const name = document.getElementById('regName').value.trim();
+      const centerName = document.getElementById('regCenter').value.trim();
+      const email = document.getElementById('regEmail').value.trim().toLowerCase();
+      const password = document.getElementById('regPassword').value;
+
+      if (!name || !centerName || !email || !password) return alert('Please fill all registration fields.');
+      if (db.teachers.some(t => t.email === email)) return alert('Email already registered.');
+
+      const createdAt = nowISO();
+      db.teachers.push({
+        id: crypto.randomUUID(),
+        name,
+        centerName,
+        email,
+        passwordHash: hashPassword(password),
+        createdAt,
+        students: [],
+        attendance: {},
+        payments: [],
+        billing: [],
+        subscription: {
+          trialStartedAt: createdAt,
+          trialEndsAt: plusDays(createdAt, 7),
+          paidUntil: null,
+          status: 'trial',
+          lockedAt: null,
+          forceLocked: false
         }
+      });
+      saveDB(db);
+      alert('Account created with a 7-day free trial. Please login.');
+    }
 
-        function showTab(id) {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active-tab'));
-            document.getElementById(id).classList.add('active');
-            document.getElementById('btn-'+id).classList.add('active-tab');
-            if(id === 'attendance') renderAttendance();
-            if(id === 'reports') renderAbsence();
-            if(id === 'grades') renderGradesTable();
+    function loginTeacher() {
+      const db = loadDB();
+      const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+      const password = document.getElementById('loginPassword').value;
+      const teacher = db.teachers.find(t => t.email === email && t.passwordHash === hashPassword(password));
+      if (!teacher) return alert('Invalid credentials.');
+
+      evaluateSubscriptionStatus(teacher);
+      if (teacher.subscription.status === 'expired' || teacher.subscription.status === 'locked') {
+        saveDB(db);
+        return alert('Account is locked due to expired subscription. Please renew monthly plan.');
+      }
+
+      db.session = { role: 'teacher', teacherId: teacher.id };
+      saveDB(db);
+      render();
+    }
+
+    function loginAdmin() {
+      const email = document.getElementById('adminEmail').value.trim().toLowerCase();
+      const password = document.getElementById('adminPassword').value;
+      if (email !== ADMIN.email || password !== ADMIN.password) return alert('Invalid admin credentials.');
+      const db = loadDB();
+      db.session = { role: 'admin' };
+      saveDB(db);
+      render();
+    }
+
+    function logout() {
+      const db = loadDB();
+      db.session = null;
+      saveDB(db);
+      closeScanner();
+      render();
+    }
+
+    function currentTeacher(db) {
+      if (!db.session || db.session.role !== 'teacher') return null;
+      return getTeacherById(db, db.session.teacherId);
+    }
+
+    function addStudent() {
+      const db = loadDB();
+      const teacher = currentTeacher(db);
+      if (!teacher) return;
+
+      evaluateSubscriptionStatus(teacher);
+      if (teacher.subscription.status !== 'trial' && teacher.subscription.status !== 'active') {
+        saveDB(db);
+        return alert('Subscription expired. Access locked.');
+      }
+
+      const name = document.getElementById('studentName').value.trim();
+      const phone = document.getElementById('studentPhone').value.trim();
+      const grade = document.getElementById('studentGrade').value.trim();
+      if (!name || !phone || !grade) return alert('Fill all student fields.');
+
+      teacher.students.push({ id: crypto.randomUUID(), name, phone, grade, createdAt: nowISO() });
+      saveDB(db);
+      document.getElementById('studentName').value = '';
+      document.getElementById('studentPhone').value = '';
+      document.getElementById('studentGrade').value = '';
+      renderTeacher(teacher);
+    }
+
+    function deleteStudent(studentId) {
+      const db = loadDB();
+      const teacher = currentTeacher(db);
+      teacher.students = teacher.students.filter(s => s.id !== studentId);
+      teacher.payments = teacher.payments.filter(p => p.studentId !== studentId);
+      Object.keys(teacher.attendance).forEach(date => delete teacher.attendance[date][studentId]);
+      saveDB(db);
+      renderTeacher(teacher);
+    }
+
+    function openScanner() {
+      const date = document.getElementById('attendanceDate').value;
+      if (!date) return alert('Select attendance date first.');
+      if (html5QrCode) return;
+      html5QrCode = new Html5Qrcode('reader');
+      html5QrCode.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: 220 },
+        (decodedText) => {
+          const db = loadDB();
+          const teacher = currentTeacher(db);
+          if (!teacher) return;
+          try {
+            const payload = JSON.parse(decodedText);
+            const student = teacher.students.find(s => s.id === payload.studentId);
+            if (!student) return;
+            if (!teacher.attendance[date]) teacher.attendance[date] = {};
+            if (teacher.attendance[date][student.id]) return;
+            teacher.attendance[date][student.id] = { at: nowISO() };
+            saveDB(db);
+            document.getElementById('scanResult').innerText = `Attendance marked: ${student.name}`;
+            renderTeacher(teacher);
+          } catch (e) {
+            document.getElementById('scanResult').innerText = 'Invalid QR payload.';
+          }
         }
+      ).catch(() => {
+        document.getElementById('scanResult').innerText = 'Camera access failed.';
+      });
+    }
 
-        function addStudent() {
-            const name = document.getElementById('stdName').value.trim();
-            const phone = document.getElementById('stdPhone').value.trim();
-            const center = document.getElementById('stdCenter').value.trim();
-            const year = document.getElementById('stdYear').value;
-            if(!name || !phone || !center || !year) return alert("يا فرعون، أكمل بيانات الطالب!");
+    function closeScanner() {
+      if (!html5QrCode) return;
+      html5QrCode.stop().then(() => { html5QrCode.clear(); html5QrCode = null; }).catch(() => { html5QrCode = null; });
+    }
 
-            students.push({ id: Date.now(), name, phone, center, year });
-            save(); renderStudents();
-            document.getElementById('stdName').value = ''; document.getElementById('stdPhone').value = ''; document.getElementById('stdCenter').value = '';
+    function addPayment() {
+      const db = loadDB();
+      const teacher = currentTeacher(db);
+      const studentId = document.getElementById('paymentStudent').value;
+      const month = document.getElementById('paymentMonth').value.trim();
+      const amount = Number(document.getElementById('paymentAmount').value);
+      const status = document.getElementById('paymentStatus').value;
+      if (!studentId || !month || !amount) return alert('Complete payment fields.');
+
+      teacher.payments.push({ id: crypto.randomUUID(), studentId, month, amount, status, recordedAt: nowISO() });
+      saveDB(db);
+      renderTeacher(teacher);
+    }
+
+    function renewSubscription() {
+      const db = loadDB();
+      const teacher = currentTeacher(db);
+      const months = Number(document.getElementById('monthsToAdd').value || 1);
+      const ref = document.getElementById('paymentRef').value.trim();
+      if (months < 1 || !ref) return alert('Enter valid months and payment reference.');
+
+      const baseDate = teacher.subscription.paidUntil && new Date(teacher.subscription.paidUntil) > new Date()
+        ? teacher.subscription.paidUntil
+        : nowISO();
+
+      teacher.subscription.paidUntil = plusMonths(baseDate, months);
+      teacher.subscription.status = 'active';
+      teacher.subscription.lockedAt = null;
+      teacher.subscription.forceLocked = false;
+      teacher.billing.push({ id: crypto.randomUUID(), months, amount: months * MONTHLY_PRICE, reference: ref, paidAt: nowISO() });
+      saveDB(db);
+      renderTeacher(teacher);
+      alert('Subscription renewed successfully.');
+    }
+
+    function adminSetLock(teacherId, lock) {
+      const db = loadDB();
+      const teacher = getTeacherById(db, teacherId);
+      teacher.subscription.forceLocked = lock;
+      if (lock) teacher.subscription.status = 'locked';
+      evaluateSubscriptionStatus(teacher);
+      saveDB(db);
+      renderAdmin(db);
+    }
+
+    function showTeacherTab(tabId, btn) {
+      document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden-panel'));
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden-panel');
+      document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('tab-active'); b.classList.add('bg-white'); });
+      btn.classList.add('tab-active');
+      btn.classList.remove('bg-white');
+    }
+
+    function renderTeacher(teacher) {
+      evaluateSubscriptionStatus(teacher);
+
+      const sub = teacher.subscription;
+      const now = new Date();
+      let badge = '';
+      if (sub.status === 'trial') badge = `🟡 Trial active (${Math.max(0, daysBetween(now, sub.trialEndsAt))} days left)`;
+      if (sub.status === 'active') badge = `🟢 Active plan until ${new Date(sub.paidUntil).toLocaleDateString()}`;
+      if (sub.status === 'expired' || sub.status === 'locked') badge = '🔴 Locked: subscription expired';
+
+      document.getElementById('teacherTitle').innerText = `${teacher.name} • ${teacher.centerName}`;
+      document.getElementById('subscriptionBadge').innerText = badge;
+
+      document.getElementById('studentsList').innerHTML = teacher.students.map(s => `
+        <div class="border rounded-2xl p-4 bg-slate-50">
+          <h4 class="font-bold">${s.name}</h4>
+          <p class="text-sm text-slate-600">${s.grade} • ${s.phone}</p>
+          <div id="qr-${s.id}" class="my-2"></div>
+          <button onclick="deleteStudent('${s.id}')" class="text-xs bg-red-600 text-white px-2 py-1 rounded">Delete</button>
+        </div>
+      `).join('');
+
+      teacher.students.forEach(s => {
+        const qrContainer = document.getElementById(`qr-${s.id}`);
+        if (qrContainer) {
+          qrContainer.innerHTML = '';
+          new QRCode(qrContainer, { text: JSON.stringify({ studentId: s.id }), width: 80, height: 80 });
         }
+      });
 
-        function renderStudents() {
-            document.getElementById('studentsGrid').innerHTML = students.map(s => `
-                <div class="bg-white p-6 rounded-[35px] shadow-sm border flex flex-col items-center hover:shadow-lg transition">
-                    <div id="qr-${s.id}" class="mb-4"></div>
-                    <h3 class="font-black text-slate-800">${s.name}</h3>
-                    <p class="text-xs font-bold text-yellow-600">${s.center} - ${s.year}</p>
-                    <button onclick="delStd(${s.id})" class="mt-4 text-red-300 hover:text-red-500 text-[10px] font-bold">حذف الطالب 🗑️</button>
-                </div>
-            `).join('');
-            students.forEach(s => new QRCode(document.getElementById(`qr-${s.id}`), { text: JSON.stringify({id: s.id}), width: 100, height: 100 }));
-            updateSelects();
+      const attendanceDate = document.getElementById('attendanceDate').value || new Date().toISOString().split('T')[0];
+      document.getElementById('attendanceDate').value = attendanceDate;
+      const logs = teacher.attendance[attendanceDate] || {};
+      document.getElementById('attendanceList').innerHTML = teacher.students.map(s => {
+        const isPresent = !!logs[s.id];
+        return `<div class="p-3 rounded-xl border ${isPresent ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'}">${s.name} - ${isPresent ? 'Present' : 'Absent'}</div>`;
+      }).join('');
+
+      document.getElementById('paymentStudent').innerHTML = '<option value="">Select student</option>' + teacher.students.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+      document.getElementById('paymentsTable').innerHTML = `
+        <table class="w-full text-sm border rounded-xl overflow-hidden">
+          <thead class="bg-slate-100"><tr><th class="p-2">Student</th><th>Month</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody>${teacher.payments.map(p => {
+            const s = teacher.students.find(st => st.id === p.studentId);
+            return `<tr class="border-t"><td class="p-2">${s ? s.name : 'Deleted student'}</td><td>${p.month}</td><td>$${p.amount}</td><td>${p.status}</td></tr>`;
+          }).join('')}</tbody>
+        </table>`;
+
+      const todayLogs = Object.keys(logs).length;
+      const paidCount = teacher.payments.filter(p => p.status === 'Paid').length;
+      const totalRevenue = teacher.payments.filter(p => p.status === 'Paid').reduce((sum, p) => sum + p.amount, 0);
+      const overdue = teacher.payments.filter(p => p.status === 'Overdue').length;
+      const cards = [
+        ['Total Students', teacher.students.length],
+        ['Today Attendance', todayLogs],
+        ['Paid Invoices', paidCount],
+        ['Revenue', `$${totalRevenue}`],
+        ['Overdue Payments', overdue],
+        ['Subscription Status', sub.status.toUpperCase()]
+      ];
+      document.getElementById('reportStats').innerHTML = cards.map(c => `<div class="border rounded-xl p-3 bg-slate-50"><p class="text-xs text-slate-500">${c[0]}</p><p class="text-xl font-black">${c[1]}</p></div>`).join('');
+
+      document.getElementById('subscriptionDetails').innerHTML = `
+        <div class="grid md:grid-cols-2 gap-3 text-sm">
+          <div class="border rounded-xl p-3">7-day trial ends: <b>${new Date(sub.trialEndsAt).toLocaleString()}</b></div>
+          <div class="border rounded-xl p-3">Paid plan until: <b>${sub.paidUntil ? new Date(sub.paidUntil).toLocaleString() : 'No active paid plan'}</b></div>
+          <div class="border rounded-xl p-3">Current status: <b>${sub.status}</b></div>
+          <div class="border rounded-xl p-3">Monthly price: <b>$${MONTHLY_PRICE}</b></div>
+        </div>
+      `;
+    }
+
+    function renderAdmin(db) {
+      const teachers = db.teachers;
+      teachers.forEach(evaluateSubscriptionStatus);
+      saveDB(db);
+
+      const active = teachers.filter(t => t.subscription.status === 'active').length;
+      const trial = teachers.filter(t => t.subscription.status === 'trial').length;
+      const locked = teachers.filter(t => t.subscription.status === 'expired' || t.subscription.status === 'locked').length;
+      const students = teachers.reduce((sum, t) => sum + t.students.length, 0);
+
+      document.getElementById('adminStats').innerHTML = [
+        ['Teachers', teachers.length], ['Students', students], ['Active Subs', active], ['Locked/Expired', locked + ` (Trial: ${trial})`]
+      ].map(c => `<div class="border rounded-xl p-3 bg-violet-50"><p class="text-xs">${c[0]}</p><p class="text-2xl font-black">${c[1]}</p></div>`).join('');
+
+      document.getElementById('adminTeachers').innerHTML = teachers.map(t => `
+        <div class="border rounded-xl p-3 flex flex-col md:flex-row md:items-center justify-between gap-2">
+          <div>
+            <h4 class="font-bold">${t.name} • ${t.centerName}</h4>
+            <p class="text-xs">${t.email} | Status: <b>${t.subscription.status}</b> | Students: ${t.students.length}</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="adminSetLock('${t.id}', true)" class="bg-red-600 text-white px-3 py-2 rounded-lg text-xs">Lock</button>
+            <button onclick="adminSetLock('${t.id}', false)" class="bg-emerald-600 text-white px-3 py-2 rounded-lg text-xs">Unlock</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function render() {
+      const db = loadDB();
+      document.getElementById('authPanel').classList.add('hidden-panel');
+      document.getElementById('teacherApp').classList.add('hidden-panel');
+      document.getElementById('adminApp').classList.add('hidden-panel');
+
+      if (!db.session) {
+        document.getElementById('authPanel').classList.remove('hidden-panel');
+        document.getElementById('authState').innerText = 'Not logged in';
+        return;
+      }
+
+      if (db.session.role === 'teacher') {
+        const teacher = currentTeacher(db);
+        if (!teacher) {
+          db.session = null;
+          saveDB(db);
+          return render();
         }
+        evaluateSubscriptionStatus(teacher);
+        saveDB(db);
+        document.getElementById('authState').innerText = `Logged in as Teacher: ${teacher.email}`;
+        document.getElementById('teacherApp').classList.remove('hidden-panel');
+        renderTeacher(teacher);
+        return;
+      }
 
-        function updateSelects() {
-            const s = document.getElementById('gradeStudentSelect');
-            if(s) s.innerHTML = '<option value="">اختر الطالب</option>' + students.map(st => `<option value="${st.id}">${st.name} (${st.center})</option>`).join('');
-        }
+      document.getElementById('authState').innerText = 'Logged in as Admin';
+      document.getElementById('adminApp').classList.remove('hidden-panel');
+      renderAdmin(db);
+    }
 
-        function startScanner() {
-            document.getElementById('scanModal').classList.add('active');
-            html5QrCode = new Html5Qrcode("reader");
-            html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (text) => {
-                const data = JSON.parse(text);
-                const std = students.find(s => s.id == data.id);
-                const date = document.getElementById('attDate').value;
-                const msgEl = document.getElementById('scanMsg');
-
-                if(std && date && !attendance[date]?.[std.id]) {
-                    const time = new Date().toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit', hour12:true});
-                    if(!attendance[date]) attendance[date] = {};
-                    attendance[date][std.id] = { time: time };
-                    save();
-                    msgEl.innerText = "✅ أهلاً بالفرعون " + std.name;
-                    msgEl.className = "mt-6 font-bold text-lg py-2 px-4 bg-green-100 text-green-700 rounded-xl";
-                    
-                    const msg = `وصل بالسلامة يا مستر.. 🎓\nالطالب: *${std.name}*\nحضر في سنتر: *${std.center}*\nالساعة: *${time}*.\nتحياتنا: *الفرعون محمود رسمي* ✨`;
-                    window.open(`https://wa.me/2${std.phone}?text=${encodeURIComponent(msg)}`, '_blank');
-                }
-            }).catch(()=>{});
-        }
-
-        function stopScanner() { if(html5QrCode) html5QrCode.stop().then(() => { document.getElementById('scanModal').classList.remove('active'); renderAttendance(); }); }
-
-        function sendGrade() {
-            const id = document.getElementById('gradeStudentSelect').value;
-            const exam = document.getElementById('examName').value.trim();
-            const score = document.getElementById('gradeValue').value;
-            const max = document.getElementById('maxGrade').value;
-            if(!id || !exam || !score || !max) return alert("أكمل بيانات الدرجة!");
-
-            const std = students.find(s => s.id == id);
-            const msg = `نتيجة الاختبار.. 📊\nالطالب: *${std.name}*\nالسنتر: *${std.center}*\nالامتحان: *${exam}*\nالدرجة: *${score} من ${max}*\nمع تحيات: *الفرعون محمود رسمي* 👑`;
-            
-            grades.push({ name: std.name, center: std.center, exam, score, max });
-            save(); renderGradesTable();
-            window.open(`https://wa.me/2${std.phone}?text=${encodeURIComponent(msg)}`, '_blank');
-        }
-
-        function renderGradesTable() {
-            document.getElementById('gradesTableBody').innerHTML = grades.slice().reverse().map(g => `
-                <tr class="border-b text-sm">
-                    <td class="py-4 font-bold text-slate-700">${g.name}</td>
-                    <td class="text-xs text-gray-500">${g.center}</td>
-                    <td class="text-xs">${g.exam}</td>
-                    <td class="font-black text-green-600">${g.score}/${g.max}</td>
-                </tr>
-            `).join('');
-        }
-
-        function renderAttendance() {
-            const date = document.getElementById('attDate').value;
-            if(!attendance[date]) attendance[date] = {};
-            document.getElementById('attList').innerHTML = students.map(s => {
-                const log = attendance[date][s.id];
-                return `<div class="p-4 rounded-2xl border ${log ? 'bg-green-50 border-green-200' : 'bg-white'} flex justify-between items-center"><span class="font-bold">${s.name} (${s.center})</span><span class="text-xs font-black">${log ? '✅ ' + log.time : 'غائب'}</span></div>`;
-            }).join('');
-        }
-
-        function renderAbsence() {
-            const date = document.getElementById('attDate').value;
-            const absents = students.filter(s => !attendance[date]?.[s.id]);
-            document.getElementById('absenceList').innerHTML = absents.map(s => `
-                <div class="p-5 bg-red-50 rounded-3xl border border-red-100 flex justify-between items-center shadow-sm">
-                    <div><h4 class="font-black text-slate-800 text-sm">${s.name}</h4><p class="text-[10px] text-red-500">سنتر: ${s.center}</p></div>
-                    <button onclick="sendAbsenceWA('${s.phone}', '${s.name}', '${s.center}')" class="bg-red-600 text-white px-5 py-2 rounded-xl text-xs font-bold shadow-lg shadow-red-100">تبليغ غياب 📢</button>
-                </div>
-            `).join('');
-        }
-
-        function sendAbsenceWA(phone, name, center) {
-            const msg = `تنبيه غياب.. ⚠️\nالطالب: *${name}*\nلم يحضر اليوم في سنتر: *${center}*.\nيرجى الاطمئنان عليه.\nتحياتنا: *الفرعون محمود رسمي* 👑`;
-            window.open(`https://wa.me/2${phone}?text=${encodeURIComponent(msg)}`, '_blank');
-        }
-
-        function delStd(id) { if(confirm('حذف؟')) { students = students.filter(s => s.id !== id); save(); renderStudents(); } }
-        document.getElementById('attDate').value = new Date().toISOString().split('T')[0];
-        renderStudents();
-    </script>
+    render();
+  </script>
 </body>
 </html>
