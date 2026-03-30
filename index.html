@@ -127,9 +127,20 @@
 </div>
 
 <script>
-    let students = JSON.parse(localStorage.getItem('students') || '[]');
-    let attendance = JSON.parse(localStorage.getItem('attendance') || '{}');
-    let grades = JSON.parse(localStorage.getItem('grades') || '[]');
+    function readStorageWithLegacy(newKey, legacyKey, fallback) {
+        const currentValue = localStorage.getItem(newKey);
+        if (currentValue !== null) return JSON.parse(currentValue);
+
+        const legacyValue = localStorage.getItem(legacyKey);
+        if (legacyValue === null) return fallback;
+
+        localStorage.setItem(newKey, legacyValue);
+        return JSON.parse(legacyValue);
+    }
+
+    let students = readStorageWithLegacy('students', 'students_fr', []);
+    let attendance = readStorageWithLegacy('attendance', 'attendance_fr', {});
+    let grades = readStorageWithLegacy('grades', 'grades_fr', []);
     let courses = JSON.parse(localStorage.getItem('courses') || '[]');
     let html5QrCode;
 
